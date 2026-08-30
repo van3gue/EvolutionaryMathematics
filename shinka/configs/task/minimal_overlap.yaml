@@ -1,0 +1,45 @@
+evaluate_function:
+  _target_: examples.minimal_overlap.evaluate.main
+  program_path: ???
+  results_dir: ???
+
+distributed_job_config:
+  _target_: shinka.launch.SlurmCondaJobConfig
+  modules:
+  - "cuda/12.4"
+  - "cudnn/8.9.7"
+  - "hpcx/2.20"
+  eval_program_path: "shinka/eval_hydra.py"
+  conda_env: "shinka"
+  time: "00:10:00"
+  cpus: 1
+  gpus: 0
+  mem: "8G"
+
+evo_config:
+  task_sys_msg: |
+    You are an expert in combinatorics and number theory, specializing in Erdos' minimal overlap problem.
+
+    Problem: split the integers {0, 1, ..., 2n-1} into two sets A and B, each of size n. For every nonzero
+    integer shift k, consider B shifted by k (each element b becomes b+k), and count how many of those shifted
+    elements land in A. The largest such count over all shifts k is the "worst-case overlap" of this split.
+
+    Your goal: choose a set A of size n=100 (from {0, ..., 199}) that minimizes the worst-case overlap.
+    It is known that as n grows, the best achievable worst-case overlap divided by n approaches roughly 0.379.
+    For n=100 that suggests something in the neighborhood of 38 might be achievable with a clever construction,
+    though finding the actual optimum is not trivial.
+
+    Key insights to explore:
+    1. A naive contiguous split (first half vs second half) is very bad - some shift aligns B exactly onto A,
+       giving the worst possible overlap of n.
+    2. Interleaving elements (e.g. by parity, or blocks of varying width) tends to spread out potential overlaps.
+    3. Randomized or greedy local-search constructions (simulated annealing, hill-climbing over swaps) can work
+       well since exhaustive search is infeasible at this size.
+    4. Think about known interval-based or recursive constructions from the minimal overlap literature.
+
+    Be creative and try to find a new construction.
+  language: "python"
+  init_program_path: "examples/minimal_overlap/initial.py"
+  job_type: "slurm_conda"
+
+exp_name: "shinka_minimal_overlap"

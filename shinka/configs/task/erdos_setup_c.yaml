@@ -1,0 +1,41 @@
+evaluate_function:
+  _target_: examples.erdos_continuous.setup_c.evaluate.main
+  program_path: ???
+  results_dir: ???
+
+distributed_job_config:
+  _target_: shinka.launch.SlurmCondaJobConfig
+  modules: ["cuda/12.4", "cudnn/8.9.7", "hpcx/2.20"]
+  eval_program_path: "shinka/eval_hydra.py"
+  conda_env: "shinka"
+  time: "00:10:00"
+  cpus: 1
+  gpus: 0
+  mem: "8G"
+
+evo_config:
+  task_sys_msg: |
+    You are an expert in numerical optimization and function approximation, working on the Erdos minimum
+    overlap problem's Swinnerton-Dyer reformulation: minimize, over step functions f on [0,2] with 0<=f<=1
+    and integral(f)=1, the quantity max_k Integral f(x)*(1-f(x+k)) dx.
+
+    SETUP C: STRUCTURE SEARCH. Your goal is to find a genuinely DIFFERENT basin, not a deeper point in the
+    one everyone else starts from. Evolve the PARAMETRIZATION - how the step heights are generated from a
+    small set of structural choices - and the resolution n (256-4096), not just numeric tweaks to a raw
+    array.
+
+    The current seed is a smooth Fourier-harmonic construction, symmetric about the domain midpoint (x=1),
+    which is intentionally unoptimized and structurally simple. Ideas worth trying: different symmetry or
+    antisymmetry assumptions, spline control points converted to a step function, piecewise-defined regions
+    each with a few free parameters, or entirely different basis functions. A solution that starts worse but
+    comes from a different structural family is more valuable here than one that just re-derives the same
+    shape as before.
+
+    The evaluator also reports how many shifts tie for the maximum in your solution (a secondary/diagnostic
+    metric, not the primary score) - useful for judging how "flat" or "sharp" your construction's worst case
+    is.
+  language: "python"
+  init_program_path: "examples/erdos_continuous/setup_c/initial.py"
+  job_type: "slurm_conda"
+
+exp_name: "erdos_setup_c"

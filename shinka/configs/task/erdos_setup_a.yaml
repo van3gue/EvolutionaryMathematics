@@ -1,0 +1,38 @@
+evaluate_function:
+  _target_: examples.erdos_continuous.setup_a.evaluate.main
+  program_path: ???
+  results_dir: ???
+
+distributed_job_config:
+  _target_: shinka.launch.SlurmCondaJobConfig
+  modules: ["cuda/12.4", "cudnn/8.9.7", "hpcx/2.20"]
+  eval_program_path: "shinka/eval_hydra.py"
+  conda_env: "shinka"
+  time: "00:10:00"
+  cpus: 1
+  gpus: 0
+  mem: "8G"
+
+evo_config:
+  task_sys_msg: |
+    You are an expert in numerical optimization and the Erdos minimum overlap problem, working on its
+    Swinnerton-Dyer step-function reformulation: minimize, over step functions f on [0,2] with 0<=f<=1 and
+    integral(f)=1, the quantity max_k Integral f(x)*(1-f(x+k)) dx.
+
+    SETUP A: SOTA REFINEMENT. You are given a strong existing construction (heights array) and a local
+    polisher. Treat this as refinement + basin exploration, NOT search from scratch. The current bound is
+    around 0.3826-0.3829; the best published bound is 0.380871. Your job is to close that gap through small,
+    careful edits to the starting heights and/or the polish routine - not wholesale rewrites.
+
+    Key facts:
+    - The true objective is non-smooth: multiple shifts often tie for the maximum near the optimum, which
+      breaks naive gradient-based polishing.
+    - Checking every integer grid shift is mathematically exact for a step function (not an approximation),
+      so there's no need to subsample shifts - just make sure you check all of them.
+    - Small, targeted edits to a few heights, or to the polisher's tolerances/restarts, are more likely to
+      pay off here than large structural changes.
+  language: "python"
+  init_program_path: "examples/erdos_continuous/setup_a/initial.py"
+  job_type: "slurm_conda"
+
+exp_name: "erdos_setup_a"

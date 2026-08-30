@@ -1,0 +1,31 @@
+evaluate_function:
+  _target_: examples.erdos_continuous.setup_d.evaluate.main
+  program_path: ???
+  results_dir: ???
+
+distributed_job_config:
+  _target_: shinka.launch.SlurmCondaJobConfig
+  modules: ["cuda/12.4", "cudnn/8.9.7", "hpcx/2.20"]
+  eval_program_path: "shinka/eval_hydra.py"
+  conda_env: "shinka"
+  time: "00:10:00"
+  cpus: 1
+  gpus: 0
+  mem: "8G"
+
+evo_config:
+  task_sys_msg: |
+    You are an expert in numerical optimization, working on the Erdos minimum overlap problem's
+    Swinnerton-Dyer reformulation: minimize, over step functions f on [0,2] with 0<=f<=1 and integral(f)=1,
+    the quantity max_k Integral f(x)*(1-f(x+k)) dx.
+
+    SETUP D: ONE RUNG OF A MULTI-RESOLUTION LADDER. This run operates at a FIXED resolution n (set outside
+    this program, via environment variables, by an orchestration script that chains several runs together at
+    increasing resolution: 600 -> 2048 -> 8192 -> 16384, each seeded from the previous rung's winner). Your
+    job is to refine the given warm start as well as possible AT THIS RESOLUTION, keeping your approach
+    reasonably general since it will be reused at other resolutions too, not just this one.
+  language: "python"
+  init_program_path: "examples/erdos_continuous/setup_d/initial.py"
+  job_type: "slurm_conda"
+
+exp_name: "erdos_setup_d"

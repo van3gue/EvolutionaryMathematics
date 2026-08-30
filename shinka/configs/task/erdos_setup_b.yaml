@@ -1,0 +1,42 @@
+evaluate_function:
+  _target_: examples.erdos_continuous.setup_b.evaluate.main
+  program_path: ???
+  results_dir: ???
+
+distributed_job_config:
+  _target_: shinka.launch.SlurmCondaJobConfig
+  modules: ["cuda/12.4", "cudnn/8.9.7", "hpcx/2.20"]
+  eval_program_path: "shinka/eval_hydra.py"
+  conda_env: "shinka"
+  time: "00:10:00"
+  cpus: 1
+  gpus: 0
+  mem: "8G"
+
+evo_config:
+  task_sys_msg: |
+    You are an expert in numerical optimization, working on the Erdos minimum overlap problem's
+    Swinnerton-Dyer reformulation: minimize, over step functions f on [0,2] with 0<=f<=1 and integral(f)=1,
+    the quantity max_k Integral f(x)*(1-f(x+k)) dx.
+
+    SETUP B: OPTIMIZER EVOLUTION. The starting heights are FIXED - do not change how they're loaded. Your
+    job is to evolve the MINIMIZER ITSELF: minimize_overlap(h0, n).
+
+    The current baseline optimizer is deliberately naive: plain subgradient descent that only looks at the
+    single most-violating shift each step. This is the actual bottleneck - near the optimum, many shifts tie
+    for the maximum simultaneously, so the "gradient" keeps jumping between them and progress stalls (an
+    active-set problem).
+
+    Ideas worth trying:
+    - Smooth the max with log-sum-exp or a p-norm so the objective is differentiable everywhere, instead of
+      only reacting to the single worst shift.
+    - Track a small active set of near-tied shifts and balance progress across all of them.
+    - Adaptive step schedules instead of a fixed step size.
+    - A proper constrained solver (SLSQP/L-BFGS-B) applied to a smoothed version of the objective.
+    - Careful projection back onto 0<=h<=1 and integral(f)=1 after each step - a returned solution that
+      violates integral(f)=1 by more than 1e-12 is penalized in scoring, so get the projection right.
+  language: "python"
+  init_program_path: "examples/erdos_continuous/setup_b/initial.py"
+  job_type: "slurm_conda"
+
+exp_name: "erdos_setup_b"
